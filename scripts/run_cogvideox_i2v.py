@@ -22,7 +22,10 @@ Usage:
 
 import os
 # Keep the HF cache on fast /raid, not the NFS home (avoids download stalls).
-os.environ.setdefault("HF_HOME", "/raid/coss39/haneium/hf_cache")
+# Optional:
+# Set HF_HOME externally if the default cache directory is slow.
+# Example:
+# export HF_HOME=/path/to/hf_cache
 
 import time
 import argparse
