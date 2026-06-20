@@ -14,14 +14,13 @@ Tested env (AICOSS DIS04 / RTX A6000 48GB):
   (transformers pin matters: 5.x breaks tokenizer load, 4.46.x is too old.)
 
 Usage:
-  python run_cogvideox_i2v.py \
-      --image ./input.png \
-      --prompt "a calm ocean wave rolls toward the shore, gentle motion" \
-      --out ./output_sample.mp4
+  python scripts/run_cogvideox_i2v.py \
+    --image ./inputs/sample_input.png \
+    --prompt "a calm ocean wave rolls toward the shore, gentle motion" \
+    --out ./results/output_sample.mp4
 """
 
 import os
-# Keep the HF cache on fast /raid, not the NFS home (avoids download stalls).
 # Optional:
 # Set HF_HOME externally if the default cache directory is slow.
 # Example:
@@ -62,6 +61,10 @@ def main():
     args = ap.parse_args()
 
     print("torch:", torch.__version__, "| cuda available:", torch.cuda.is_available())
+
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. This script requires a CUDA GPU.")
+
     image = load_local_image(args.image)
 
     pipe = CogVideoXImageToVideoPipeline.from_pretrained(
@@ -84,6 +87,10 @@ def main():
         generator=generator,
     ).frames[0]
     elapsed = time.time() - t0
+
+    out_dir = os.path.dirname(args.out)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
 
     export_to_video(frames, args.out, fps=args.fps)
 
