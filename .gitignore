@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Hugging Face / model cache
+.cache/
+hf_cache/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+
+# Large outputs
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.gif
+
+# Images and private data
+inputs/
+private/
+data/
+datasets/
+
+# Logs
+*.log
+logs/
+
+# Secrets
+.env
+*.key
+*.pem
+token.txt
+secrets.*
