@@ -14,8 +14,8 @@ This file records sample inference outputs without committing large video files 
 | Steps           | 50                                                        |
 | Guidance scale  | 6.0                                                       |
 | Seed            | 42                                                        |
-| Wall time       | TBD                                                       |
-| Peak GPU memory | TBD                                                       |
+| Wall time       | Approximately 6 minutes                                   |
+| Peak GPU memory | Approximately 21.2GB                                      |
 
 ## Notes
 
