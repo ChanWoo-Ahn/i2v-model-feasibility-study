@@ -16,24 +16,27 @@ Therefore, future work should focus on domain adaptation or fine-tuning rather t
 
 A possible dataset structure:
 
-```text id="6y67bu"
-dataset/
-├── train/
-│   ├── sample_0001/
-│   │   ├── input.png
-│   │   ├── target.mp4
-│   │   └── caption.txt
-│   ├── sample_0002/
-│   │   ├── input.png
-│   │   ├── target.mp4
-│   │   └── caption.txt
-│
-└── validation/
-    ├── sample_0001/
-    │   ├── input.png
-    │   ├── target.mp4
-    │   └── caption.txt
-```
+* dataset/
+
+  * train/
+
+    * sample_0001/
+
+      * input.png
+      * target.mp4
+      * caption.txt
+    * sample_0002/
+
+      * input.png
+      * target.mp4
+      * caption.txt
+  * validation/
+
+    * sample_0001/
+
+      * input.png
+      * target.mp4
+      * caption.txt
 
 Each sample should contain:
 
@@ -52,11 +55,9 @@ A caption should describe:
 * Expected visual outcome
 * Important constraints
 
-Example structure:
+Example caption structure:
 
-```text id="ud13d7"
 A [scene description] showing [main object]. The object moves [motion description], resulting in [future visual outcome]. The camera remains [camera condition].
-```
 
 ## 4. Fine-tuning Options
 
@@ -102,7 +103,7 @@ Possible evaluation aspects:
 1. Run more inference experiments with controlled prompts
 2. Record runtime, memory, and output characteristics
 3. Construct a small input-video-caption dataset
-4. Review `cogvideox-factory` or similar training pipelines
+4. Review CogVideoX fine-tuning or LoRA training pipelines
 5. Test LoRA fine-tuning feasibility
 6. Compare base model outputs and adapted model outputs
 

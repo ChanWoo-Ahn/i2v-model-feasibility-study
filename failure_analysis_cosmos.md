@@ -24,7 +24,7 @@ The execution attempt included:
 
 The execution stopped with the following error:
 
-```text id="9i5lmz"
+```text
 AssertionError: Could not find libtransformer_engine.so
 ```
 

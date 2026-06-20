@@ -4,7 +4,7 @@ This document summarizes the CogVideoX-5B-I2V inference setup used in this repos
 
 ## 1. Selected Model
 
-```text id="wwous6"
+```text
 THUDM/CogVideoX-5b-I2V
 ```
 
@@ -27,13 +27,13 @@ The `transformers` version was a key compatibility point. Some versions caused t
 
 Main script:
 
-```text id="ee8ude"
+```text
 scripts/run_cogvideox_i2v.py
 ```
 
 Example usage:
 
-```bash id="0vo6yh"
+```bash
 python scripts/run_cogvideox_i2v.py \
     --image ./inputs/sample_input.png \
     --prompt "a calm ocean wave rolls toward the shore, gentle motion" \
