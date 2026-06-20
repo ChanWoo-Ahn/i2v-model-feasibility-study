@@ -1,0 +1,26 @@
+model:
+  model_id: "THUDM/CogVideoX-5b-I2V"
+  dtype: "bfloat16"
+
+input:
+  image_path: "./inputs/sample_input.png"
+  target_width: 720
+  target_height: 480
+
+generation:
+  prompt: "a calm ocean wave rolls toward the shore, gentle motion"
+  num_inference_steps: 50
+  guidance_scale: 6.0
+  num_frames: 49
+  fps: 8
+  seed: 42
+
+output:
+  output_path: "./results/output_sample.mp4"
+
+environment:
+  torch: "2.6.0+cu124"
+  diffusers: "0.38.0"
+  transformers: "4.49.0"
+  accelerate: "1.14.0"
+  gpu: "NVIDIA RTX A6000 48GB"
