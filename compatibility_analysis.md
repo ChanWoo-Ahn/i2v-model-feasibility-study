@@ -28,7 +28,7 @@ The Cosmos-H-Surgical stack appeared to require a newer NVIDIA software stack.
 
 The execution reached the initialization stage but stopped with:
 
-```text id="ih7gwq"
+```text
 AssertionError: Could not find libtransformer_engine.so
 ```
 
@@ -40,7 +40,7 @@ Based on the observed error and the software stack mismatch, I interpreted the i
 
 The key dependency relationship was:
 
-```text id="g4yl9i"
+```text
 NVIDIA Driver
     ↓
 CUDA runtime / toolkit compatibility
@@ -60,7 +60,7 @@ Instead of forcing Cosmos-H-Surgical under an incompatible environment, I switch
 
 The selected alternative was:
 
-```text id="v30kxh"
+```text
 THUDM/CogVideoX-5b-I2V
 ```
 
