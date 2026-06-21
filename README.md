@@ -90,7 +90,7 @@ Versions that worked (took some trial and error):
 | transformers | 4.49.0 |
 | accelerate | 1.14.0 |
 
-`transformers` was the annoying part: `5.12.1` failed to load the tokenizer
+The most sensitive dependency was the `transformers` version: `5.12.1` failed to load the tokenizer
 (`spiece.model` via tiktoken), `4.46.2` was missing
 `Dinov2WithRegistersConfig`, and `4.49.0` worked.
 

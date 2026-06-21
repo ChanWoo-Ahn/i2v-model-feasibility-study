@@ -51,7 +51,7 @@ Picked because it's the one that actually clears every bar at once:
   "one image → short future clip" idea;
 - CUDA 12.4 is its recommended setup, so it runs on the server with no upgrade;
 - only needs `diffusers` — no Transformer Engine build to fight;
-- fits comfortably in 48GB, with room left over for fine-tuning later;
+- fits for inference on the available 48GB GPU; fine-tuning feasibility still needs to be tested separately, likely starting with LoRA or another parameter-efficient method;
 - `cogvideox-factory` makes single-GPU fine-tuning realistic, and SurGen already
   showed the "CogVideoX + surgical data" path works.
 
