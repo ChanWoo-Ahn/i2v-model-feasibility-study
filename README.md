@@ -1,8 +1,6 @@
 # Image-to-Video Model Feasibility Study
 
-A record of picking an image-to-video (i2v) model for an action-result
-prediction task, finding out whether the candidates actually run on the GPU
-server I had access to, and getting one working end to end.
+This repository documents a feasibility study for selecting and testing an image-to-video (I2V) model for an action-result prediction task under practical GPU server constraints.
 
 ## Why I started this
 
@@ -95,7 +93,7 @@ The most sensitive dependency was the `transformers` version: `5.12.1` failed to
 `Dinov2WithRegistersConfig`, and `4.49.0` worked.
 
 - Model `THUDM/CogVideoX-5b-I2V`, ~21.6GB, cached on a fast local disk (set via HF_HOME, not NFS home).
-- 49-frame clip, 50 steps, ~6 min per clip. Peak GPU memory was ~21.2GB on an
+- 49-frame clip at 8 FPS (~6.1 seconds of video), 50 steps, ~6 min inference time per clip.
   early single-image test and ~34.6GB on the showcase runs below — same
   resolution/frames, the gap is most likely when peak was sampled, not a
   settings change.
