@@ -28,49 +28,48 @@ The `transformers` version was a key compatibility point. Some versions caused t
 Main script:
 
 ```text
-scripts/run_cogvideox_i2v.py
+scripts/run_i2v_showcase.py
 ```
 
-Example usage:
+It runs the same recipe over two contrasting inputs (`candle.jpg`,
+`robot_cube.jpg`) placed in `./inputs/`, writing `.mp4` files to `./outputs/`:
 
 ```bash
-python scripts/run_cogvideox_i2v.py \
-    --image ./inputs/sample_input.png \
-    --prompt "a calm ocean wave rolls toward the shore, gentle motion" \
-    --out ./results/output_sample.mp4 \
-    --steps 50 \
-    --guidance 6.0 \
-    --frames 49 \
-    --fps 8 \
-    --seed 42
+# put candle.jpg and robot_cube.jpg in ./inputs/ first
+python scripts/run_i2v_showcase.py
 ```
 
 ## 4. Script Features
 
 The script is designed to:
 
-* Load a local input image
-* Resize the image to the model resolution
-* Use a fixed seed for reproducibility
-* Run CogVideoX-5B-I2V inference
-* Export the generated output as an `.mp4` file
-* Print wall-clock time
-* Print peak GPU memory usage
-* Create the output directory automatically if needed
+* Load local input images (no remote URLs, for reproducibility)
+* Center-crop to the model's 3:2 ratio, then resize to 720x480
+* Apply a shared negative prompt and a fixed seed
+* Run CogVideoX-5B-I2V inference for each input
+* Export each result as an `.mp4`
+* Print runtime and peak GPU memory per job
 * Stop clearly if CUDA is not available
 
 ## 5. Tested Run Configuration
 
-| Item            | Value                                             |
-| --------------- | ------------------------------------------------- |
-| Input           | Local image                                       |
-| Output          | 49-frame video                                    |
-| Inference steps | 50                                                |
-| Guidance scale  | 6.0                                               |
-| FPS             | 8                                                 |
-| Seed            | 42                                                |
-| Peak GPU memory | Approximately 21.2GB during inference             |
-| Runtime         | Approximately 6 minutes in the tested environment |
+Baseline diagnosis run (two contrasting inputs, same recipe):
+
+| Item            | Value                                  |
+| --------------- | -------------------------------------- |
+| Inputs          | candle (sweet spot), robot+cube (weak spot) |
+| Output          | 49-frame video per input               |
+| Inference steps | 50                                     |
+| Guidance scale  | 6.0                                    |
+| FPS             | 8                                      |
+| Seed            | 42                                     |
+| Peak GPU memory | ~34.6GB (showcase run)                 |
+| Runtime         | ~6 min per job                         |
+
+An earlier single-image test measured ~21.2GB peak under the same
+resolution/frame settings; the difference is most likely down to when peak
+memory was sampled, not a settings change. Per-shot observations are in
+[`results/sample_outputs.md`](results/sample_outputs.md).
 
 ## 6. Current Limitation
 

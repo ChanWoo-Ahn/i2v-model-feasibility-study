@@ -1,22 +1,25 @@
+# Recipe used for the baseline-diagnosis showcase (scripts/run_i2v_showcase.py).
+# Both inputs use the same generation settings; only the input image and prompt differ.
+
 model:
   model_id: "THUDM/CogVideoX-5b-I2V"
   dtype: "bfloat16"
 
 input:
-  image_path: "./inputs/sample_input.png"
+  input_dir: "./inputs"        # candle.jpg (sweet spot), robot_cube.jpg (weak spot)
   target_width: 720
   target_height: 480
 
 generation:
-  prompt: "a calm ocean wave rolls toward the shore, gentle motion"
   num_inference_steps: 50
   guidance_scale: 6.0
   num_frames: 49
   fps: 8
   seed: 42
+  negative_prompt: "inconsistent motion, blurry motion, worse quality, degenerate outputs, deformed outputs"
 
 output:
-  output_path: "./results/output_sample.mp4"
+  output_dir: "./outputs"      # mp4 files are gitignored
 
 environment:
   torch: "2.6.0+cu124"

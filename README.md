@@ -94,22 +94,43 @@ Versions that worked (took some trial and error):
 (`spiece.model` via tiktoken), `4.46.2` was missing
 `Dinov2WithRegistersConfig`, and `4.49.0` worked.
 
-- Model `THUDM/CogVideoX-5b-I2V`, ~21.6GB, cached on `/raid` (not NFS home).
+- Model `THUDM/CogVideoX-5b-I2V`, ~21.6GB, cached on a fast local disk (set via HF_HOME, not NFS home).
 - 49-frame clip, 50 steps, ~6 min, ~21.2GB GPU memory on the 48GB card.
 - Output quality on an out-of-domain input is base-model level — limited
   temporal consistency, expected for an untuned model. That's the reason
   fine-tuning is the next step rather than more prompt tweaking.
 
-A general-image sample is in [`results/`](results/) (script:
-[`scripts/run_cogvideox_i2v.py`](scripts/run_cogvideox_i2v.py)). The
-domain-specific run was reviewed qualitatively but isn't published here.
+## Baseline diagnosis: where the base model holds and where it breaks
+
+Before any fine-tuning, I ran the **same** inference recipe (720x480, 50 steps,
+49 frames, guidance 6.0, fixed negative prompt, seed 42) on two inputs picked to
+be opposites, to see the base model's ceiling and its failure mode side by side.
+
+| Input | What it stresses | Result |
+| --- | --- | --- |
+| Lit candle | single subject + atmospheric motion | Flame sways, smoke rises — natural. The model's sweet spot. |
+| Robot arm + red cube | multi-object + grasp/lift manipulation | Layout holds, but the gripper–cube bond collapses the instant it lifts. |
+
+So the base model is convincing on visual realism and simple motion, but the
+physical cause-and-effect of a grasp→lift breaks down — frames look plausible one
+by one, the motion doesn't add up. That contrast is the concrete reason the next
+step is domain fine-tuning, not more prompt tuning. (This "plausible per-frame
+but physically inconsistent" behavior also gets discussed around robot
+world-model video generation; I'm noting the resemblance qualitatively, not as a
+benchmarked comparison.)
+
+Settings, runtimes, and per-shot observations:
+[`results/sample_outputs.md`](results/sample_outputs.md). Script:
+[`scripts/run_i2v_showcase.py`](scripts/run_i2v_showcase.py). Video files aren't
+committed (`.gitignore` excludes `*.mp4`). An earlier domain-specific run was
+reviewed qualitatively but isn't published here.
 
 ## What I'd do next
 
 - Build input → future-frame pairs and image/video–caption pairs for fine-tuning.
 - Try prompt / `guidance_scale` variations first, then move to fine-tuning
   ([`finetuning_plan.md`](finetuning_plan.md)) for the actual domain gap.
-- Evaluate temporal/scene consistency instead of eyeballing.
+- Move from per-shot qualitative review toward temporal/scene-consistency metrics.
 - Longer term, this connects to two different next steps depending on
   direction: domain-adaptation / fine-tuning of the generative model itself,
   or — if extended toward action-conditioned prediction (image + instruction +
@@ -134,7 +155,7 @@ i2v-model-feasibility-study/
 ├── failure_analysis_cosmos.md  # the init-to-libtransformer_engine.so trail
 ├── inference_cogvideox.md      # how CogVideoX was run + version notes
 ├── finetuning_plan.md          # domain-adaptation direction
-├── scripts/run_cogvideox_i2v.py
+├── scripts/run_i2v_showcase.py
 ├── configs/cogvideox_inference_config.yaml
-└── results/                    # general-image samples only
+└── results/                    # settings + observations (no video files)
 ```
