@@ -1,77 +1,56 @@
 # Compatibility Analysis
 
-This document summarizes the compatibility analysis between the available GPU server environment and the model requirements.
+Why the Cosmos block was a system-level limit, not a missing package — and why
+CogVideoX was fine on the same machine. This is the "dependency layers" view;
+the step-by-step attempt is in
+[`failure_analysis_cosmos.md`](failure_analysis_cosmos.md).
 
-## 1. Available Server Environment
+## The server
 
-| Item          | Available Environment                     |
-| ------------- | ----------------------------------------- |
-| GPU           | NVIDIA RTX A6000 48GB                     |
-| NVIDIA Driver | 550.54.14                                 |
-| CUDA          | 12.4 in conda / 12.1 in Singularity       |
-| PyTorch       | 2.6.0+cu124 in conda / 2.2 in Singularity |
-| Python        | 3.10.20                                   |
+| Item | Value |
+| --- | --- |
+| GPU | NVIDIA RTX A6000 48GB |
+| Driver | 550.54.14 |
+| CUDA | 12.4 (conda) / 12.1 (Singularity) |
+| PyTorch | 2.6.0+cu124 (conda) / 2.2 (Singularity) |
+| Python | 3.10.20 |
 
-## 2. Cosmos-H-Surgical Requirement Gap
+The driver (550) is the fixed part here — it's set by the host and an admin, not
+by me, and it caps which CUDA versions can run on top.
 
-The Cosmos-H-Surgical stack appeared to require a newer NVIDIA software stack.
+## Why CogVideoX ran but Cosmos didn't
 
-| Component          | Available Server                            | Expected Requirement        |
-| ------------------ | ------------------------------------------- | --------------------------- |
-| NVIDIA Driver      | 550.54.14                                   | 570+                        |
-| CUDA               | 12.1 / 12.4                                 | 12.8                        |
-| PyTorch            | 2.2 / 2.6                                   | 2.7                         |
-| Transformer Engine | Not successfully available as a CUDA binary | Required                    |
-| OS / Container     | Ubuntu 20.04.6 / Singularity                | Newer NVIDIA stack expected |
-
-## 3. Observed Issue
-
-The execution reached the initialization stage but stopped with:
+Same GPU, same driver, opposite outcome — and the reason is the dependency
+chain, not the model size:
 
 ```text
-AssertionError: Could not find libtransformer_engine.so
+NVIDIA driver (550, fixed)
+   └─ CUDA runtime / toolkit
+        └─ PyTorch CUDA build
+             └─ extra compiled binaries (e.g. Transformer Engine)
+                  └─ the model's inference code
 ```
 
-This suggested that the problem was not simply a missing Python import. The missing component was a compiled CUDA-related binary used by NVIDIA Transformer Engine.
+- **CogVideoX-5B-I2V** stops at the PyTorch layer — it only needs `diffusers`
+  on top of a CUDA-enabled PyTorch, no extra compiled binary. The 550/12.4 stack
+  already satisfies that, so it just runs.
+- **Cosmos-H-Surgical** adds one more layer: a compiled Transformer Engine
+  binary (`libtransformer_engine.so`, the 2.2.0 build) that wants CUDA 12.8,
+  which wants a 570+ driver. The chain breaks two levels below the Python code,
+  so installing more Python packages can't fix it.
 
-## 4. Interpretation
+That's the whole point of separating the two: a missing `.so` that traces back to
+the driver is a different kind of problem than a missing `pip` package, and only
+one of them is solvable from where I sit.
 
-Based on the observed error and the software stack mismatch, I interpreted the issue as a system-level compatibility limitation rather than a simple missing-package problem.
+## The gap, in one table
 
-The key dependency relationship was:
+| Component | Server | Cosmos-H-Surgical expects |
+| --- | --- | --- |
+| Driver | 550.54.14 | 570+ |
+| CUDA | 12.1 / 12.4 | 12.8 |
+| PyTorch | 2.2 / 2.6 | 2.7 |
+| Transformer Engine | 2.2.0 binary not installable | 2.2.0 (CUDA binary) |
 
-```text
-NVIDIA Driver
-    ↓
-CUDA runtime / toolkit compatibility
-    ↓
-PyTorch CUDA build
-    ↓
-Transformer Engine binary
-    ↓
-Cosmos-H-Surgical inference stack
-```
-
-If the lower-level driver and CUDA stack do not satisfy the model's expected environment, simply installing more Python packages is unlikely to solve the issue.
-
-## 5. Decision
-
-Instead of forcing Cosmos-H-Surgical under an incompatible environment, I switched to a feasible image-to-video model that could run under the available server constraints.
-
-The selected alternative was:
-
-```text
-THUDM/CogVideoX-5b-I2V
-```
-
-## 6. Lesson Learned
-
-This compatibility analysis was useful because it showed that running large AI models is not only about model code. It also requires understanding the interaction between:
-
-* GPU hardware
-* Driver version
-* CUDA version
-* PyTorch build
-* Model-specific dependencies
-* Container limitations
-* Available system permissions
+So the decision was: don't fight a driver-level limit from user space. Run
+CogVideoX-5B-I2V now, and ask the admin about a newer image for Cosmos later.

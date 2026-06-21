@@ -95,7 +95,10 @@ Versions that worked (took some trial and error):
 `Dinov2WithRegistersConfig`, and `4.49.0` worked.
 
 - Model `THUDM/CogVideoX-5b-I2V`, ~21.6GB, cached on a fast local disk (set via HF_HOME, not NFS home).
-- 49-frame clip, 50 steps, ~6 min, ~21.2GB GPU memory on the 48GB card.
+- 49-frame clip, 50 steps, ~6 min per clip. Peak GPU memory was ~21.2GB on an
+  early single-image test and ~34.6GB on the showcase runs below — same
+  resolution/frames, the gap is most likely when peak was sampled, not a
+  settings change.
 - Output quality on an out-of-domain input is base-model level — limited
   temporal consistency, expected for an untuned model. That's the reason
   fine-tuning is the next step rather than more prompt tweaking.

@@ -1,119 +1,70 @@
 # Fine-tuning Plan
 
-This document outlines a future fine-tuning and domain adaptation plan.
+The next stage, not done yet. What makes this more than a generic to-do list is
+that the baseline showcase already gave a concrete failure to aim at, rather than
+a vague "improve quality."
 
-No fine-tuning has been completed yet. This file is a planning document for the next stage after inference feasibility testing.
+## What the baseline told me
 
-## 1. Motivation
+From the showcase (see [`results/sample_outputs.md`](results/sample_outputs.md)):
+the base model is strong on visual realism and simple, ambient motion (the candle
+flickers naturally) but breaks on purposeful physical interaction — with the
+robot arm, the gripper–cube bond falls apart the instant it lifts. Frames look
+fine one by one; the grasp→lift cause-and-effect doesn't hold.
 
-The tested CogVideoX-5B-I2V model is a base pretrained image-to-video model.
+So the target isn't "sharper video." It's specifically the physical consistency
+of an object being acted on — which prompt tuning won't fix, because the model
+just hasn't seen enough of that kind of motion. That's the case for fine-tuning.
 
-Base pretrained models can generate video-like outputs, but they may not capture the dynamics of a specific action, object, scene, or domain without additional adaptation.
+## Data
 
-Therefore, future work should focus on domain adaptation or fine-tuning rather than only prompt engineering.
+Build input → future-clip → caption triples:
 
-## 2. Dataset Construction
+```text
+dataset/
+  train/sample_0001/{input.png, target.mp4, caption.txt}
+  val/  sample_0001/{input.png, target.mp4, caption.txt}
+```
 
-A possible dataset structure:
+For the surgical direction, Cholec80 is the obvious source (it's what SurGen used).
+Caption should name the scene, the main tool/object, its current state, the
+expected motion, and the expected outcome — e.g. "A [scene] with [tool/object].
+It [motion], resulting in [outcome]. Camera [static/moving]." The point is to give
+the model the action→result mapping the base model is missing.
 
-* dataset/
+## Method
 
-  * train/
+| Approach | Trade-off |
+| --- | --- |
+| LoRA | lightest on memory; first thing to try |
+| Full fine-tune | best capacity, heaviest; may not fit |
+| Adapters | middle ground, depends on implementation |
+| Prompt-only | no training; already shown to be not enough |
 
-    * sample_0001/
+Plan is `cogvideox-factory` with LoRA first, since SurGen showed CogVideoX +
+surgical data works and `cogvideox-factory` is built for single-GPU runs.
 
-      * input.png
-      * target.mp4
-      * caption.txt
-    * sample_0002/
+## Memory caveat
 
-      * input.png
-      * target.mp4
-      * caption.txt
-  * validation/
+Inference peaked ~34.6GB of 48GB, so ~13GB free at inference — but that does
+**not** mean training fits. Fine-tuning adds gradients, optimizer states,
+activations, and checkpoints, so training memory has to be measured on its own
+before committing to full vs. LoRA.
 
-    * sample_0001/
+## How I'll judge it
 
-      * input.png
-      * target.mp4
-      * caption.txt
+The honest baseline is the showcase itself, so the evaluation is concrete:
+re-run the same robot-arm/cube input after fine-tuning and check whether the
+grasp→lift holds together this time, alongside temporal/scene consistency on
+held-out clips and side-by-side base-vs-tuned comparison. Same inference recipe
+(720x480, 50 steps, 49 frames, guidance 6.0, negative prompt) so the before/after
+is apples-to-apples.
 
-Each sample should contain:
+## Status
 
-* Input image
-* Future video clip
-* Text caption describing the expected motion or scene transition
-
-## 3. Caption Schema
-
-A caption should describe:
-
-* Scene context
-* Main object or tool
-* Current state
-* Expected motion
-* Expected visual outcome
-* Important constraints
-
-Example caption structure:
-
-A [scene description] showing [main object]. The object moves [motion description], resulting in [future visual outcome]. The camera remains [camera condition].
-
-## 4. Fine-tuning Options
-
-Possible approaches:
-
-| Method               | Description                     | Notes                                  |
-| -------------------- | ------------------------------- | -------------------------------------- |
-| LoRA fine-tuning     | Parameter-efficient fine-tuning | More feasible under limited GPU memory |
-| Full fine-tuning     | Update full model parameters    | Likely requires more GPU memory        |
-| Adapter-based tuning | Add smaller trainable modules   | Depends on available implementation    |
-| Prompt-only tuning   | No model update                 | Useful as a baseline but limited       |
-
-## 5. Memory Consideration
-
-Inference memory usage does not directly determine fine-tuning feasibility.
-
-Fine-tuning requires additional memory for:
-
-* Gradients
-* Optimizer states
-* Activations
-* Checkpoints
-* Longer training batches
-
-Therefore, fine-tuning feasibility must be tested separately.
-
-## 6. Evaluation
-
-Evaluation should not rely only on visual inspection.
-
-Possible evaluation aspects:
-
-* Temporal consistency
-* Scene consistency
-* Object motion consistency
-* Frame-to-frame stability
-* Prompt-video alignment
-* Qualitative human evaluation
-* Comparison between base model and fine-tuned model
-
-## 7. Short-Term Plan
-
-1. Run more inference experiments with controlled prompts
-2. Record runtime, memory, and output characteristics
-3. Construct a small input-video-caption dataset
-4. Review CogVideoX fine-tuning or LoRA training pipelines
-5. Test LoRA fine-tuning feasibility
-6. Compare base model outputs and adapted model outputs
-
-## 8. Current Status
-
-Current status:
-
-* Inference pipeline: tested
-* Candidate model review: completed at feasibility level
-* Cosmos-H-Surgical compatibility issue: documented
-* CogVideoX-5B-I2V inference: tested
-* Fine-tuning: not yet performed
-* Architecture modification: not yet performed
+- candidate review — done
+- Cosmos compatibility limit — documented
+- CogVideoX inference — running
+- baseline strength/weakness diagnosis (candle vs robot+cube) — done
+- dataset construction — not started
+- fine-tuning — not started

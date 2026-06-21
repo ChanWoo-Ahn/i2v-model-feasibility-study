@@ -1,56 +1,56 @@
 # Environment
 
-This document summarizes the GPU server environment used for the image-to-video model feasibility study.
+The exact stack the work ran on, so a result can be reproduced and a version
+question can be answered precisely.
 
-## 1. Server
+## Server
 
-| Item        | Value                         |
-| ----------- | ----------------------------- |
-| Server      | AICOSS DIS04                  |
-| Access      | Login server + SLURM (`srun`) |
-| GPU         | NVIDIA RTX A6000              |
-| GPU Memory  | 48GB                          |
-| OS          | Ubuntu 20.04.6                |
-| Docker      | Not available                 |
-| Singularity | Available                     |
+| Item | Value |
+| --- | --- |
+| Node | AICOSS DIS04 |
+| Access | login server → SLURM (`srun`) → GPU node |
+| GPU | NVIDIA RTX A6000, 48GB |
+| OS | Ubuntu 20.04.6 |
+| Containers | Docker not allowed; Singularity available |
 
-## 2. Main Conda Environment
+## Conda env (used for CogVideoX)
 
-| Package / Component | Version     |
-| ------------------- | ----------- |
-| Python              | 3.10.20     |
-| NVIDIA Driver       | 550.54.14   |
-| CUDA                | 12.4        |
-| PyTorch             | 2.6.0+cu124 |
-| diffusers           | 0.38.0      |
-| transformers        | 4.49.0      |
-| accelerate          | 1.14.0      |
+| Component | Version |
+| --- | --- |
+| Python | 3.10.20 |
+| Driver | 550.54.14 |
+| CUDA | 12.4 |
+| PyTorch | 2.6.0+cu124 |
+| diffusers | 0.38.0 |
+| transformers | 4.49.0 |
+| accelerate | 1.14.0 |
 
-This environment was used to run CogVideoX-5B-I2V inference.
+The `transformers` pin matters: `5.12.1` failed to load the tokenizer
+(`spiece.model` via tiktoken), `4.46.2` was missing `Dinov2WithRegistersConfig`,
+and `4.49.0` was the one that worked. Also needed `imageio` / `imageio-ffmpeg`
+for video export.
 
-## 3. Notes on CUDA and Driver Compatibility
+## Why this driver runs CogVideoX but not Cosmos
 
-The available driver version was sufficient for the tested CogVideoX inference setup, but it was not sufficient for the newer NVIDIA Cosmos-H-Surgical software stack.
+550 is fine for CogVideoX (it only needs `diffusers` on CUDA-enabled PyTorch) but
+short for the newer Cosmos stack, which wants driver 570+ / CUDA 12.8 plus a
+compiled Transformer Engine binary. The layer-by-layer reason is in
+[`compatibility_analysis.md`](compatibility_analysis.md).
 
-The key compatibility issue was not only a Python package problem. It involved the relationship between:
+## Cache directory
 
-* NVIDIA driver version
-* CUDA version
-* PyTorch version
-* Transformer Engine binary compatibility
-
-## 4. Cache Directory
-
-For large model downloads, the default home directory can be slow or storage-limited. In that case, the Hugging Face cache directory can be set externally:
+Large downloads are slow/limited on the NFS home, so the Hugging Face cache is
+set externally rather than hard-coded in the script (keeps it portable and keeps
+server-specific paths out of the repo):
 
 ```bash
 export HF_HOME=/path/to/hf_cache
 ```
 
-This path is intentionally not hard-coded in the inference script so that the code remains portable and does not expose server-specific paths.
+## Memory headroom (matters for fine-tuning)
 
-## 5. Reproducibility Scope
-
-This repository documents the environment that worked for feasibility-level inference testing.
-
-It does not guarantee that the same configuration will work for training or fine-tuning, because training requires additional memory for gradients, activations, and optimizer states.
+The baseline showcase run peaked around 34.6GB on the 48GB card — so there's
+roughly 13GB free at inference. That's a useful data point, but it does **not**
+mean fine-tuning fits: training adds gradients, optimizer states, activations,
+and checkpoints on top, so fine-tuning memory has to be measured separately
+before assuming it works here.

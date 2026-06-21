@@ -1,82 +1,79 @@
-# Failure Analysis: Cosmos-H-Surgical
+# Cosmos-H-Surgical: how far I got and why I stopped
 
-This document records the attempt to run Cosmos-H-Surgical and explains why I decided to switch to a feasible alternative model.
+The README summarizes this in a paragraph. Here's the full trail, including the
+steps I left out of the README for length.
 
-## 1. Initial Goal
+## What I was trying to do
 
-Cosmos-H-Surgical was considered as the initial target because it was closely aligned with image-to-world or action-result prediction tasks.
+Cosmos-H-Surgical was my first-choice model because it's a surgical
+image-to-world model — closest to the "predict the next bit of the scene"
+idea. The question was just: can it run on the AICOSS DIS04 server as-is?
 
-The goal was to check whether it could be used as a candidate model under the available AICOSS GPU server environment.
+## The repo, before I even installed anything
 
-## 2. What I Tried
+The repo splits into `predict/` (Image2World — the part I wanted) and
+`transfer/` (multimodal-controlled generation). `transfer/` needs ~65GB VRAM, so
+it was out on a 48GB card regardless. That left `predict/`.
 
-The execution attempt included:
+The `predict/docs/setup.md` requirements vs. the server, side by side:
 
-* Using a Singularity image where the RTX A6000 GPU was recognized
-* Cloning the Cosmos-related repository
-* Checking the Image2World-related inference path
-* Installing required Python packages
-* Applying minor compatibility patches to get past import-stage issues
-* Running the inference entry point
-* Reaching the `Video2WorldInference` initialization stage
+| Component | Server | Cosmos-H-Surgical expects |
+| --- | --- | --- |
+| NVIDIA driver | 550.54.14 | ≥ 570.124.06 |
+| CUDA | 12.1 (Singularity) / 12.4 (conda) | 12.8 |
+| PyTorch | 2.2 / 2.6 | 2.7 |
+| GPU | RTX A6000 48GB | Ampere+ (ok) |
 
-## 3. Where It Stopped
+Every row except the GPU is short of spec. I tried anyway, to see exactly where
+it would break rather than assume.
 
-The execution stopped with the following error:
+## How far it got
+
+Working inside the `py3.10cuda12.1torch2.2_ubuntu22.sif` Singularity image (where
+the A6000 was recognized):
+
+- installed `cosmos-oss==0.1.0` and the pieces it pulls in by hand —
+  `hydra-core`, `omegaconf`, `peft`, `webdataset`, `decord`, `megatron-core`;
+- monkey-patched a couple of API differences (`torch.amp.GradScaler`,
+  `torch.distributed`) to get past import-stage errors;
+- `python examples/inference.py --help` ran;
+- `Video2WorldInference` initialization was reached.
+
+So this wasn't a "didn't install" failure — it got into the model's own setup
+before stopping.
+
+## Where it stopped
 
 ```text
 AssertionError: Could not find libtransformer_engine.so
 ```
 
-This error indicated that the Transformer Engine shared library was not available in the runtime environment.
+Cosmos uses NVIDIA Transformer Engine internally (attention, fused layers, FP8).
+Installing `transformer-engine==2.2.0` with `--no-deps` only puts the Python
+wrapper in place — the compiled `libtransformer_engine.so` isn't there, so it
+can't load. You can fake the import with a stub, but the forward pass needs the
+real `.so` and fails.
 
-## 4. Why This Was Not Treated as a Simple Package Error
+I also checked the Isaac Sim image (`isaac-sim5.0.sif`) as a possible shortcut.
+Its `/.singularity.d/libs/libcuda.so.550.54.14` is just the host's driver
+injected in, so it's the same 550 underneath — no help.
 
-Installing the Python wrapper alone was not enough. The issue involved a compiled CUDA binary dependency.
+## How I read it
 
-The available server environment had the following limitations:
+The `.so` not loading isn't really a Python-package problem; it's that the whole
+lower stack (driver → CUDA → Transformer Engine binary) is a version behind what
+the model wants, and the driver is the part only an admin can change. My best
+read is that the driver gap (550 vs 570+) is the dominant cause. I'm not 100%
+certain Transformer Engine wouldn't fail for some other reason too, but pushing
+further wasn't worth it when a working alternative existed.
 
-| Component     | Available   |
-| ------------- | ----------- |
-| NVIDIA Driver | 550.54.14   |
-| CUDA          | 12.1 / 12.4 |
-| PyTorch       | 2.2 / 2.6   |
+So the conclusion is narrow on purpose: **not** "Cosmos-H-Surgical doesn't
+work," just "it isn't runnable on this server at this stage." I switched to
+CogVideoX-5B-I2V and separately emailed the server admin to ask about a newer
+(CUDA 12.8 / PyTorch 2.7 / Transformer Engine) image.
 
-The expected stack for the Cosmos-H-Surgical environment appeared to be newer, including:
+## What the attempt was worth
 
-| Component          | Expected                        |
-| ------------------ | ------------------------------- |
-| NVIDIA Driver      | 570+                            |
-| CUDA               | 12.8                            |
-| PyTorch            | 2.7                             |
-| Transformer Engine | CUDA-compatible binary required |
-
-## 5. Interpretation
-
-Based on the observed error and the software stack mismatch, I interpreted this as a system-level compatibility problem.
-
-I am not claiming that Cosmos-H-Surgical itself is unusable. The conclusion is narrower:
-
-> Under the available server environment, Cosmos-H-Surgical was not feasible to run reliably at this project stage.
-
-## 6. Decision to Switch
-
-Instead of continuing to force the model under an incompatible environment, I reviewed alternative models based on:
-
-* Public availability
-* Server compatibility
-* Image-to-video relevance
-* Dependency complexity
-* Feasibility for experimentation
-
-This led to selecting CogVideoX-5B-I2V as a feasible alternative.
-
-## 7. Takeaway
-
-The main value of this attempt was not a successful Cosmos execution, but the process of:
-
-1. Checking the best-fit candidate model
-2. Comparing requirements with the actual server environment
-3. Identifying the likely system-level limitation
-4. Making a practical model selection decision
-5. Moving to a feasible inference pipeline
+Even though it didn't run, the useful part was the process: take the best-fit
+model, find out exactly where it breaks, tell a system-level limit apart from a
+fixable dependency, and switch deliberately instead of grinding on it.
