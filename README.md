@@ -159,6 +159,7 @@ around 93 frames / ~6 seconds for the current Cosmos-Predict2.5 setup, and the
 base model still is not tuned for fine detail, so domain fine-tuning remains the
 real next step. The current result is a qualitative side-by-side observation,
 not a metric-based benchmark.
+Detailed run notes are in [`inference_cosmos_predict25.md`](inference_cosmos_predict25.md).
 
 ## What I'd do next
 
@@ -199,6 +200,7 @@ i2v-model-feasibility-study/
 ├── compatibility_analysis.md   # driver / CUDA / PyTorch / TE gap
 ├── failure_analysis_cosmos.md  # the init-to-libtransformer_engine.so trail
 ├── inference_cogvideox.md      # how CogVideoX was run + version notes
+├── inference_cosmos_predict25.md # Cosmos-Predict2.5 diffusers route + run notes
 ├── finetuning_plan.md          # domain-adaptation direction
 ├── scripts/run_i2v_showcase.py
 ├── configs/cogvideox_inference_config.yaml
