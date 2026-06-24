@@ -25,9 +25,12 @@ hf_cache/
 *.mov
 *.mkv
 *.gif
+!results/*.gif
 
 # Images and private data
 inputs/
+!results/inputs/
+!results/inputs/*
 private/
 data/
 datasets/
