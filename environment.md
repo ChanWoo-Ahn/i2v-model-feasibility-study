@@ -61,8 +61,4 @@ export HF_HOME=/path/to/hf_cache
 
 ## Memory headroom (matters for fine-tuning)
 
-Inference fits under the tested settings — CogVideoX peaked ~34.6GB on the showcase runs, and Cosmos-Predict2.5 ran within ~32.5GB, both on the 48GB card.
-runs, and Cosmos-Predict2.5 ran within ~32.5GB, both on the 48GB card. That's a
-useful data point, but it does **not** mean fine-tuning fits: training adds
-gradients, optimizer states, activations, and checkpoints on top, so fine-tuning
-memory has to be measured separately before assuming it works here.
+Inference fits under the tested settings — CogVideoX peaked ~34.6GB on the showcase runs, and Cosmos-Predict2.5 ran within ~32.5GB, both on the 48GB card. That's a useful data point, but it does not mean fine-tuning fits: training adds gradients, optimizer states, activations, and checkpoints on top, so fine-tuning memory has to be measured separately before assuming it works here.
