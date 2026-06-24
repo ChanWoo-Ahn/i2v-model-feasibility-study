@@ -121,11 +121,12 @@ but physically inconsistent" behavior also gets discussed around robot
 world-model video generation; I'm noting the resemblance qualitatively, not as a
 benchmarked comparison.)
 
-Settings, runtimes, and per-shot observations:
-[`results/sample_outputs.md`](results/sample_outputs.md). Script:
-[`scripts/run_i2v_showcase.py`](scripts/run_i2v_showcase.py). Video files aren't
-committed (`.gitignore` excludes `*.mp4`). An earlier domain-specific run was
-reviewed qualitatively but isn't published here.
+Settings, runtimes, downscaled GIF previews, and per-shot observations:
+results/sample_outputs.md. Script:
+scripts/run_i2v_showcase.py. Full .mp4
+clips are not committed (.gitignore excludes *.mp4); only lightweight GIF
+previews are included in results/. An earlier domain-specific run was reviewed
+qualitatively but is not published here.
 
 ## Cosmos-Predict2.5-2B: routing around the blocker
 
@@ -151,18 +152,19 @@ did — consistent with it being a world model pretrained on more
 physical-interaction data. So for this action-result-prediction idea it's now my
 **main candidate**, with CogVideoX as the backup.
 
-Honest limits: with `enable_model_cpu_offload()` a clip took ~25 min (removing
-offload and dropping steps 36→30 cuts that substantially); clip length is
-effectively fixed at 93 frames / ~6 s (pushing `num_frames` higher degrades it);
-and the base model still isn't tuned for fine detail, so domain fine-tuning is
-the real next step for either model. A like-for-like CogVideoX vs.
-Cosmos-Predict2.5 comparison on identical inputs is still to be done properly.
+Honest limits: with enable_model_cpu_offload() a clip took around 25 minutes.
+Removing CPU offload or lowering the step count can reduce runtime, but that
+trade-off still needs to be measured systematically. Clip length is effectively
+around 93 frames / ~6 seconds for the current Cosmos-Predict2.5 setup, and the
+base model still is not tuned for fine detail, so domain fine-tuning remains the
+real next step. The current result is a qualitative side-by-side observation,
+not a metric-based benchmark.
 
 ## What I'd do next
 
-- Run a like-for-like CogVideoX vs. Cosmos-Predict2.5 comparison on identical
-  inputs and settings, so "Cosmos held the motion better" is backed by a
-  controlled side-by-side rather than a single observation.
+- Turn the current qualitative CogVideoX vs. Cosmos-Predict2.5 side-by-side into
+  a stricter benchmark: fixed prompts where possible, clearly logged model-specific
+  settings, repeated seeds, and temporal/scene-consistency metrics.
 - Measure and cut inference time (quantify the offload-removal and step-count
   effects on Cosmos-Predict2.5).
 - Build input → future-frame pairs and image/video–caption pairs for fine-tuning.
@@ -200,5 +202,5 @@ i2v-model-feasibility-study/
 ├── finetuning_plan.md          # domain-adaptation direction
 ├── scripts/run_i2v_showcase.py
 ├── configs/cogvideox_inference_config.yaml
-└── results/                    # settings + observations (no video files)
+└── results/                    # settings, observations, input images, and GIF previews; no full mp4 clips
 ```

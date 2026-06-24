@@ -4,13 +4,15 @@ Input images and the videos generated from them, shown so the single-image → m
 
 GIFs here are downscaled previews of the original `.mp4` outputs. Full clips are not committed to this repository. All input images are in [`results/inputs/`](inputs/).
 
-Shared recipe unless noted: `720x480`, `steps=50`, `frames=49`, `guidance_scale=6.0`, `bf16`, fixed `negative_prompt`, `seed=42`. Script: [`scripts/run_i2v_showcase.py`](../scripts/run_i2v_showcase.py).
+CogVideoX recipe unless noted: `720x480`, `steps=50`, `frames=49`,
+`guidance_scale=6.0`, `bf16`, fixed `negative_prompt`, `seed=42`.
+Cosmos-Predict2.5 uses a different pipeline and frame count, so its settings are listed separately in the runtime / memory table. Script: [`scripts/run_i2v_showcase.py`](../scripts/run_i2v_showcase.py) records the CogVideoX baseline-diagnosis runs.
 
 ---
 
 ## 1. Model comparison — robot arm + cube (grasp/lift)
 
-Same input, same settings, two models. This is the multi-object, purposeful-manipulation case — the hard one for base models.
+Same input image, comparable action-result prompt, two models. This is the multi-object, purposeful-manipulation case — the hard one for base models.
 
 Input: AI-generated image of a robot arm with a parallel-jaw gripper positioned above a red cube.
 
@@ -88,6 +90,7 @@ Input: actual photos from the project setup — a DOFBOT arm holding a tool, pho
 | CogVideoX-5B-I2V     | 49 frames / ~6 s  | 50    | ~6 min                   | ~34.6 GB  |
 | Cosmos-Predict2.5-2B | ~93 frames / ~6 s | 50    | ~25 min with CPU offload | ~32.5 GB  |
 
-Both fit on the 48 GB RTX A6000 at inference. Fine-tuning memory is a separate question — see [`finetuning_plan.md`](../finetuning_plan.md).
+Both models fit on the 48 GB RTX A6000 at inference under the tested settings.
+This does not imply that fine-tuning fits, because training adds gradients, optimizer states, activations, and checkpoint memory — see [`finetuning_plan.md`](../finetuning_plan.md).
 
 > An earlier CogVideoX single-image test measured ~21.2 GB peak under the same resolution/frame settings. The gap from ~34.6 GB is most likely about when peak memory was sampled, not a settings change.
