@@ -77,3 +77,41 @@ CogVideoX-5B-I2V and separately emailed the server admin to ask about a newer
 Even though it didn't run, the useful part was the process: take the best-fit
 model, find out exactly where it breaks, tell a system-level limit apart from a
 fixable dependency, and switch deliberately instead of grinding on it.
+## Follow-up: routing around the block (Cosmos-Predict2.5-2B via diffusers)
+
+The story didn't end at "blocked." Two things happened after.
+
+**The admin route closed the software door.** The server admin's suggestion was
+to try a virtual environment. I tried both a fresh conda env (with a cu128
+PyTorch) and the Singularity route. Both hit the same wall: the conda cu128 build
+mismatched the host's CUDA 12.4, and Singularity injects the host driver
+(`libcuda.so.550...`) regardless of the container's CUDA. So the limit really is
+at the driver layer, not something a user-space environment can fix. I sent a
+follow-up to the cluster operators asking for one of: a driver bump to 570+, a
+node with that driver, or a CUDA 12.8 / Transformer Engine SIF (still pending).
+
+**The model route opened a different door.** Separately, NVIDIA ported
+**Cosmos-Predict2.5-2B** to `diffusers` (Dec 2025). Because the `diffusers`
+pipeline (`Cosmos2_5_PredictBasePipeline`, shipped in diffusers 0.38.0) doesn't
+call Transformer Engine at all, it sidesteps the exact `.so` that blocked
+H-Surgical — so I could run a current-generation Cosmos world model on the same
+550 server without any upgrade.
+
+What it took to actually run:
+
+- **Gated repos (403 / `GatedRepoError`)** — accept the license for the model and
+  the guardrail repo, then `huggingface-cli login`.
+- **Qwen2.5-VL text encoder** — failed to load (`'dict' object has no attribute
+  'to_dict'`) on transformers 4.49.0; upgrading to 4.52.4 resolved it. (Trying a
+  separate cu128 env for this instead just reintroduced the CUDA-12.4 mismatch,
+  so upgrading transformers in place was the right move.)
+- **`_execution_device` AttributeError** on `.to("cuda")` — injected it as a
+  class-level property.
+- **Guardrail** — `safety_checker=None` for the research run.
+
+It ran, and on the robot-arm + cube scene it produced more physically consistent
+motion than the CogVideoX baseline. The takeaway that matters here: the same
+"system-level limit" framing held up (the driver wall is real and unfixable from
+user space), but finding a code path that avoids the blocked layer was a second,
+separate way to make progress — which is why Cosmos-Predict2.5-2B is now the main
+candidate.

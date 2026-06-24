@@ -36,10 +36,11 @@ AICOSS DIS04 node, accessed through a login server + SLURM (`srun`).
 
 | Model | Why I considered it | What happened |
 | --- | --- | --- |
-| Cosmos-H-Surgical | Closest fit (image-to-world, domain-specific) | Reached init, then blocked — see below |
+| Cosmos-H-Surgical | Closest fit (image-to-world, domain-specific) | Reached init, then blocked on Transformer Engine — see below |
 | SurGen | Surgical i2v (CogVideoX-2B fine-tuned on Cholec80) | Code/weights not public (as of 2026-06) |
 | Cosmos-Predict1 | General world-model family, CUDA 12.1 | Feasible but not domain-specific; being deprecated, so deprioritized |
-| **CogVideoX-5B-I2V** | image-to-video, only needs `diffusers` | **Selected and run** |
+| CogVideoX-5B-I2V | image-to-video, only needs `diffusers` | Ran; used for the baseline diagnosis, now the backup |
+| **Cosmos-Predict2.5-2B** | world model, ported to `diffusers` (skips Transformer Engine) | **Ran on the same server; now the main candidate** |
 
 ## Cosmos-H-Surgical: how far I got and where it stopped
 
@@ -93,10 +94,10 @@ The most sensitive dependency was the `transformers` version: `5.12.1` failed to
 `Dinov2WithRegistersConfig`, and `4.49.0` worked.
 
 - Model `THUDM/CogVideoX-5b-I2V`, ~21.6GB, cached on a fast local disk (set via HF_HOME, not NFS home).
-- 49-frame clip at 8 FPS (~6.1 seconds of video), 50 steps, ~6 min inference time per clip.
-  early single-image test and ~34.6GB on the showcase runs below — same
-  resolution/frames, the gap is most likely when peak was sampled, not a
-  settings change.
+- 49-frame clip at 8 FPS (~6 seconds of video), 50 steps, ~6 min inference time per clip.
+- Peak GPU memory was ~21.2GB on an early single-image test and ~34.6GB on the
+  showcase runs below — same resolution/frames, so the gap is most likely about
+  when peak memory was sampled, not a settings change.
 - Output quality on an out-of-domain input is base-model level — limited
   temporal consistency, expected for an untuned model. That's the reason
   fine-tuning is the next step rather than more prompt tweaking.
@@ -126,8 +127,44 @@ Settings, runtimes, and per-shot observations:
 committed (`.gitignore` excludes `*.mp4`). An earlier domain-specific run was
 reviewed qualitatively but isn't published here.
 
+## Cosmos-Predict2.5-2B: routing around the blocker
+
+Cosmos-H-Surgical was blocked by the Transformer Engine `.so` (above). Later I
+found that NVIDIA had ported **Cosmos-Predict2.5-2B** to `diffusers` (Dec 2025).
+The `diffusers` path doesn't go through Transformer Engine at all — exactly the
+layer that blocked H-Surgical — so it had a real chance of running on the same
+driver-550 server. It did.
+
+Getting it running (`Cosmos2_5_PredictBasePipeline` ships in diffusers 0.38.0):
+
+- **Gated repo (403).** The model and guardrail repos need a license click plus
+  `huggingface-cli login`.
+- **Qwen2.5-VL text encoder.** It failed to load (`'dict' object has no
+  attribute 'to_dict'`) on transformers 4.49.0; upgrading to **4.52.4** fixed it.
+- **`_execution_device` bug.** Calling `.to("cuda")` left that attribute unset;
+  I injected it as a class-level property.
+- **Guardrail.** Set `safety_checker=None` for the research run.
+
+Result, on the **robot-arm + cube scene from the baseline diagnosis**:
+Cosmos-Predict2.5 held the grasp→lift together noticeably better than CogVideoX
+did — consistent with it being a world model pretrained on more
+physical-interaction data. So for this action-result-prediction idea it's now my
+**main candidate**, with CogVideoX as the backup.
+
+Honest limits: with `enable_model_cpu_offload()` a clip took ~25 min (removing
+offload and dropping steps 36→30 cuts that substantially); clip length is
+effectively fixed at 93 frames / ~6 s (pushing `num_frames` higher degrades it);
+and the base model still isn't tuned for fine detail, so domain fine-tuning is
+the real next step for either model. A like-for-like CogVideoX vs.
+Cosmos-Predict2.5 comparison on identical inputs is still to be done properly.
+
 ## What I'd do next
 
+- Run a like-for-like CogVideoX vs. Cosmos-Predict2.5 comparison on identical
+  inputs and settings, so "Cosmos held the motion better" is backed by a
+  controlled side-by-side rather than a single observation.
+- Measure and cut inference time (quantify the offload-removal and step-count
+  effects on Cosmos-Predict2.5).
 - Build input → future-frame pairs and image/video–caption pairs for fine-tuning.
 - Try prompt / `guidance_scale` variations first, then move to fine-tuning
   ([`finetuning_plan.md`](finetuning_plan.md)) for the actual domain gap.
@@ -141,9 +178,14 @@ reviewed qualitatively but isn't published here.
 ## Scope
 
 This is inference + feasibility only — no training or architecture changes.
-"World model" here means a *category of candidate models I reviewed* (e.g.
-Cosmos), not something I built. CogVideoX takes English prompts only, so a
-Korean→English step would be needed upstream in a larger system.
+"World model" here means a category of models I reviewed and ran (Cosmos), not
+something I built. CogVideoX takes English prompts only, so a Korean→English step
+would be needed upstream in a larger system.
+
+One environment caveat: CogVideoX was validated on `transformers 4.49.0`, while
+Cosmos-Predict2.5 needed `4.52.4` (for the Qwen2.5-VL text encoder). I upgraded
+in place, but haven't verified that both models still run cleanly in one shared
+environment — they're best treated as two pinned setups for now.
 
 ## Layout
 
