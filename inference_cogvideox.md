@@ -68,8 +68,10 @@ Baseline diagnosis run (two contrasting inputs, same recipe):
 
 An earlier single-image test measured ~21.2GB peak under the same
 resolution/frame settings; the difference is most likely down to when peak
-memory was sampled, not a settings change. A selected public preview of the robot-arm/cube result is shown in
-results/sample_outputs.md. The earlier candle run
+memory was sampled, not a settings change.
+
+A selected public preview of the robot-arm/cube result is shown in
+[`results/sample_outputs.md`](results/sample_outputs.md). The earlier candle run
 was used as an internal sanity check for simple atmospheric motion, while the
 current public results page focuses on robot/action-result examples.
 
