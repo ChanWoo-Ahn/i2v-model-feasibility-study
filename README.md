@@ -122,10 +122,10 @@ world-model video generation; I'm noting the resemblance qualitatively, not as a
 benchmarked comparison.)
 
 Settings, runtimes, downscaled GIF previews, and per-shot observations:
-results/sample_outputs.md. Script:
-scripts/run_i2v_showcase.py. Full .mp4
-clips are not committed (.gitignore excludes *.mp4); only lightweight GIF
-previews are included in results/. An earlier domain-specific run was reviewed
+[`results/sample_outputs.md`](results/sample_outputs.md). Script:
+[`scripts/run_i2v_showcase.py`](scripts/run_i2v_showcase.py). Full `.mp4`
+clips are not committed (`.gitignore` excludes `*.mp4`); only lightweight GIF
+previews are included in `results/`. An earlier domain-specific run was reviewed
 qualitatively but is not published here.
 
 ## Cosmos-Predict2.5-2B: routing around the blocker

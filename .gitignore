@@ -20,6 +20,7 @@ hf_cache/
 *.bin
 
 # Large outputs
+outputs/
 *.mp4
 *.avi
 *.mov

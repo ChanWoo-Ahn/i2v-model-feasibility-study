@@ -67,9 +67,10 @@ held-out clips and a side-by-side base-vs-tuned comparison.
 
 - candidate review — done
 - Cosmos-H-Surgical compatibility limit — documented
-- CogVideoX inference (baseline) — done
-- baseline strength/weakness diagnosis (candle vs robot+cube) — done
+- CogVideoX inference baseline — done
+- baseline strength/weakness diagnosis — done
 - Cosmos-Predict2.5-2B inference via diffusers — done, now main candidate
-- controlled CogVideoX vs Cosmos comparison — not started
+- qualitative CogVideoX vs Cosmos side-by-side on robot-arm/cube — done
+- metric-based controlled benchmark — not started
 - dataset construction — not started
 - fine-tuning — not started

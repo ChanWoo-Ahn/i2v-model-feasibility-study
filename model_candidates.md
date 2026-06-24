@@ -72,11 +72,13 @@ Why it's now the main candidate:
 - it runs within ~32.5GB on the 48GB card, in the same conda env (after bumping
   transformers to 4.52.4 for the Qwen2.5-VL text encoder).
 
-Honest caveats (full notes in [`failure_analysis_cosmos.md`](failure_analysis_cosmos.md)):
+Honest caveats (full notes in failure_analysis_cosmos.md):
 inference was slow with CPU offload (~25 min/clip before trimming), clip length
-is effectively fixed (~93 frames / ~6 s), and a controlled CogVideoX-vs-Cosmos
-comparison on identical inputs is still to be done. The "better physical
-consistency" is a clear first observation, not yet a benchmarked result.
+is effectively fixed (~93 frames / ~6 s), and the current CogVideoX-vs-Cosmos
+result is a qualitative side-by-side observation on the same robot-arm + cube
+input, not a metric-based benchmark. A stricter comparison with repeated seeds,
+clearly logged model-specific settings, and temporal/scene-consistency metrics
+is still needed.
 
 ## So, where I landed
 
