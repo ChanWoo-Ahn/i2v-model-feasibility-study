@@ -15,7 +15,7 @@ Same input, same settings, two models. This is the multi-object, purposeful-mani
 Input: AI-generated image of a robot arm with a parallel-jaw gripper positioned above a red cube.
 
 <p align="center">
-  <img src="inputs/input_cube_grasp.jpg" width="420">
+  <img src="inputs/input_robot_grasp.jpg" width="420">
 </p>
 
 <p align="center"><b>Input image used for both models</b></p>
