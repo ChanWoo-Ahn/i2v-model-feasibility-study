@@ -2,6 +2,34 @@
 
 This repository documents a feasibility study for selecting and testing an image-to-video (I2V) model for an action-result prediction task under practical GPU server constraints.
 
+## At a glance
+
+The hard case for a base I2V model is purposeful manipulation — a gripper
+grasping and lifting an object. Same input image, same action prompt, two
+candidate models side by side:
+
+<p align="center">
+  <img src="results/inputs/input_robot_grasp.jpg" width="360">
+</p>
+<p align="center"><b>Input image (used for both models)</b></p>
+
+<table>
+  <tr>
+    <th width="50%">CogVideoX-5B-I2V (backup)</th>
+    <th width="50%">Cosmos-Predict2.5-2B (main)</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="results/output_cube_cogvideox.gif" width="360"></td>
+    <td align="center"><img src="results/output_cube_cosmos.gif" width="360"></td>
+  </tr>
+</table>
+
+Both models still break the grasp→lift bond once the arm lifts, but
+Cosmos-Predict2.5 holds it together noticeably better — that contrast is the
+concrete reason it's the main candidate here. This is a qualitative side-by-side,
+not a benchmarked metric. Full settings, runtimes, and additional shots:
+[`results/sample_outputs.md`](results/sample_outputs.md).
+
 ## Why I started this
 
 I'm working on a scenario where, before a robot (or robot-assisted system)
