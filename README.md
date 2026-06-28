@@ -27,7 +27,25 @@ candidate models side by side:
 Both models still break the grasp→lift bond once the arm lifts, but
 Cosmos-Predict2.5 holds it together noticeably better — that contrast is the
 concrete reason it's the main candidate here. This is a qualitative side-by-side,
-not a benchmarked metric. Full settings, runtimes, and additional shots:
+not a benchmarked metric.
+
+The cube input above is AI-generated. The same Cosmos-Predict2.5 pipeline also
+runs on a **real photo captured from the project's own robot rig** (a DOFBOT
+arm), so the prediction isn't only tested on synthetic inputs. The focus here is
+the world-model video prediction itself, not the particular task setup:
+
+<table>
+  <tr>
+    <th width="50%">Real captured input</th>
+    <th width="50%">Generated video (Cosmos-Predict2.5-2B)</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="results/inputs/input_tool_approach.jpg" width="360"></td>
+    <td align="center"><img src="results/output_tool_approach_cosmos.gif" width="360"></td>
+  </tr>
+</table>
+
+Full settings, runtimes, and additional shots:
 [`results/sample_outputs.md`](results/sample_outputs.md).
 
 ## Why I started this
