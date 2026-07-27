@@ -29,8 +29,9 @@ dataset/
   val/  sample_0001/{input.png, target.mp4, caption.txt}
 ```
 
-For the surgical direction, Cholec80 is the obvious source (it's what SurGen used).
-Caption should name the scene, the main tool/object, its current state, the
+If domain-specific footage is needed later, the source depends on the target
+domain — e.g. Cholec80 is the standard source for the surgical case SurGen
+tackled. Caption should name the scene, the main tool/object, its current state, the
 expected motion, and the expected outcome — e.g. "A [scene] with [tool/object].
 It [motion], resulting in [outcome]. Camera [static/moving]." The point is to give
 the model the action→result mapping the base model is missing.

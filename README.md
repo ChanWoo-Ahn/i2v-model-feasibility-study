@@ -62,8 +62,8 @@ repo focuses on the first part — model feasibility and the inference
 pipeline — since that's the part I actually built and can show working code
 for.
 
-No domain-specific (e.g. medical/surgical) images are included in this public
-repository.
+No domain-specific images from the target application are included in this
+public repository.
 
 ## Server I was working on
 
@@ -82,7 +82,7 @@ AICOSS DIS04 node, accessed through a login server + SLURM (`srun`).
 
 | Model | Why I considered it | What happened |
 | --- | --- | --- |
-| Cosmos-H-Surgical | Closest fit (image-to-world, domain-specific) | Reached init, then blocked on Transformer Engine — see below |
+| Cosmos-H-Surgical | Most domain-specialized option (image-to-world) | Reached init, then blocked on Transformer Engine — see below |
 | SurGen | Surgical i2v (CogVideoX-2B fine-tuned on Cholec80) | Code/weights not public (as of 2026-06) |
 | Cosmos-Predict1 | General world-model family, CUDA 12.1 | Feasible but not domain-specific; being deprecated, so deprioritized |
 | CogVideoX-5B-I2V | image-to-video, only needs `diffusers` | Ran; used for the baseline diagnosis, now the backup |

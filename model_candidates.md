@@ -17,8 +17,9 @@ had (RTX A6000 48GB, driver 550, CUDA 12.4).
 
 ## Cosmos-H-Surgical — first choice, didn't run (directly)
 
-This was the closest fit to the original idea (a surgical image-to-world model),
-so I tried it first. I got as far as `Video2WorldInference` initialization and
+This was the most domain-specialized image-to-world model I found, so I tried
+it first to see how a purpose-built model handles this kind of prediction
+compared to the general ones. I got as far as `Video2WorldInference` initialization and
 then hit a `libtransformer_engine.so` load failure. The full trail is in
 [`failure_analysis_cosmos.md`](failure_analysis_cosmos.md); the short version is
 that its expected stack (driver 570+, CUDA 12.8, PyTorch 2.7, Transformer Engine
@@ -32,8 +33,8 @@ SurGen is a surgical video model — CogVideoX-2B fine-tuned on Cholec80
 (cholecystectomy) data, text-to-video, 720x480 / 49 frames. Two problems for me:
 its code and weights weren't public as of 2026-06 (would need re-checking), and
 it's text→video rather than image→video. What it *did* tell me is useful, though:
-"CogVideoX + surgical data fine-tuning" is a recipe that already works, which is
-part of why I leaned toward the CogVideoX family for a baseline.
+it's evidence that CogVideoX responds well to domain fine-tuning in general,
+which is a useful data point for the fine-tuning plan regardless of target domain.
 
 ## Cosmos-Predict1 — feasible, but deprioritized
 

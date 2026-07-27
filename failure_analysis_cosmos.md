@@ -5,9 +5,10 @@ steps I left out of the README for length.
 
 ## What I was trying to do
 
-Cosmos-H-Surgical was my first-choice model because it's a surgical
-image-to-world model — closest to the "predict the next bit of the scene"
-idea. The question was just: can it run on the AICOSS DIS04 server as-is?
+Cosmos-H-Surgical was my first-choice model because it's the most
+domain-specialized image-to-world model available — the one closest to
+testing how a purpose-built model handles the "predict the next bit of the
+scene" idea. The question was just: can it run on the server as-is?
 
 ## The repo, before I even installed anything
 
